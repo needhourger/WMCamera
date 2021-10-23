@@ -10,40 +10,95 @@ import android.util.Log;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 /*
-* 时间
-* 天气
-* 地点
-* 方位角
-* 经纬度
-* */
+ * 时间
+ * 天气
+ * 地点
+ * 方位角
+ * 经纬度
+ * */
 public class Location implements AMapLocationListener {
 
     private static final String TAG = "Location";
     private static final int ID = 1001;
 
-    private Context mContext;
+    private final Context mContext;
 
-    private AMapLocationClient mLocationClient;
+    private final AMapLocationClient mLocationClient;
+    private AMapLocationClientOption mLocationOption;
     private AMapLocation mlocation;
 
-    public Location(Context context) {
+    public int locationType;
+    public double latitude;
+    public double longtitude;
+    public float accuracy;
+    public String address;
+    public String country;
+    public String province;
+    public String city;
+    public String district;
+    public String street;
+    public String streetNum;
+    public String cityCode;
+    public String adCode;
+    public String aoiName;
+    public String buildingId;
+    public String floor;
+    public int gpsAccuracyStatus;
+    public Date date;
+    public float bearing;
+    public String description;
+    public String detail;
+
+
+    public Location(Context context,
+                    AMapLocationClientOption.AMapLocationPurpose purpose,
+                    AMapLocationClientOption.AMapLocationMode mode) {
         mContext = context;
+        mLocationOption = new AMapLocationClientOption();
+        mLocationOption.setLocationPurpose(purpose);
+        mLocationOption.setLocationMode(mode);
+        if (purpose == AMapLocationClientOption.AMapLocationPurpose.SignIn){
+            mLocationOption.setOnceLocation(true);
+            mLocationOption.setOnceLocationLatest(true);
+        }
+        mLocationOption.setSensorEnable(true);
+
         mLocationClient = new AMapLocationClient(mContext);
-
+        mLocationClient.setLocationOption(mLocationOption);
         mLocationClient.setLocationListener(this);
-        mLocationClient.enableBackgroundLocation(ID,buildNotification());
-
+        if (purpose != AMapLocationClientOption.AMapLocationPurpose.SignIn){
+            mLocationClient.enableBackgroundLocation(ID, buildNotification());
+        }
         mLocationClient.startLocation();
     }
 
-    public AMapLocation getOriginalLocation(){
+    public AMapLocation getOriginalLocation() {
         return mlocation;
     }
 
+    public void dump() {
+        @SuppressLint("DefaultLocale")
+        String ret = String.format("latitude: %f longtitude: %f \n" +
+                        "address: %s \n" +
+                        "country: %s \n" +
+                        "province: %s \n" +
+                        "city: %s \n" +
+                        "district: %s \n" +
+                        "street: %s \n" +
+                        "aoi: %s \n" +
+                        "date: %s \n",
+                latitude, longtitude, address, country, province, city, district, street, aoiName, date
+        );
+        Log.d(TAG, "dump: \n" + ret);
+    }
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
@@ -51,9 +106,35 @@ public class Location implements AMapLocationListener {
             if (aMapLocation.getErrorCode() == 0) {
                 Log.d(TAG, "onLocationChanged: " + aMapLocation.getAddress());
                 mlocation = aMapLocation;
+
+                locationType = mlocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
+                latitude = mlocation.getLatitude();//获取纬度
+                longtitude = mlocation.getLongitude();//获取经度
+                accuracy = mlocation.getAccuracy();//获取精度信息
+                address = mlocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果，网络定位结果中会有地址信息，GPS定位不返回地址信息。
+                country = mlocation.getCountry();//国家信息
+                province = mlocation.getProvince();//省信息
+                city = mlocation.getCity();//城市信息
+                district = mlocation.getDistrict();//城区信息
+                street = mlocation.getStreet();//街道信息
+                streetNum = mlocation.getStreetNum();//街道门牌号信息
+                cityCode = mlocation.getCityCode();//城市编码
+                adCode = mlocation.getAdCode();//地区编码
+                aoiName = mlocation.getAoiName();//获取当前定位点的AOI信息
+                buildingId = mlocation.getBuildingId();//获取当前室内定位的建筑物Id
+                floor = mlocation.getFloor();//获取当前室内定位的楼层
+                gpsAccuracyStatus = mlocation.getGpsAccuracyStatus();//获取GPS的当前状态
+                bearing = mlocation.getBearing();
+                description = mlocation.getDescription();
+                detail = mlocation.getLocationDetail();
+
+                //获取定位时间
+                date = new Date(mlocation.getTime());
+
                 return;
             }
-            switch (aMapLocation.getErrorCode()){
+
+            switch (aMapLocation.getErrorCode()) {
                 case 1:
                     Log.i(TAG, "onLocationChanged: missing params");
                     break;
@@ -63,19 +144,27 @@ public class Location implements AMapLocationListener {
                 case 12:
                     Log.i(TAG, "onLocationChanged: no location permission");
                 default:
-                    Log.i(TAG, "onLocationChanged: errcode = "+aMapLocation.getErrorCode());
+                    Log.i(TAG, "onLocationChanged: errcode = " + aMapLocation.getErrorCode() + "\n" + aMapLocation.getErrorInfo());
             }
         }
+    }
+
+    public void refrestOnceLocation() {
+        if (mLocationOption.getLocationPurpose() != AMapLocationClientOption.AMapLocationPurpose.SignIn) {
+            Log.d(TAG, "refrestOnceLocation: not in single mode");
+            return;
+        }
+        mLocationClient.startLocation();
+    }
+
+    public void stopLocation() {
+        mLocationClient.disableBackgroundLocation(true);
     }
 
 
     private static final String NOTIFICATION_CHANNEL_NAME = "BackgroundLocation";
     private NotificationManager notificationManager = null;
     boolean isCreateChannel = false;
-
-    public void stopLocation(){
-        mLocationClient.disableBackgroundLocation(true);
-    }
 
     @SuppressLint("NewApi")
     private Notification buildNotification() {

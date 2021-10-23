@@ -1,14 +1,14 @@
 package cc.yuukisama.wmcamera
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageFormat
-import android.graphics.YuvImage
-import android.media.Image
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
@@ -16,10 +16,11 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.amap.api.location.AMapLocationClientOption
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+import java.io.FileOutputStream
 import java.lang.Exception
-import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -30,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var location:Location
+    private lateinit var location: Location
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,7 +45,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        location = Location(baseContext)
+        location = Location(
+            baseContext,
+            AMapLocationClientOption.AMapLocationPurpose.SignIn,
+            AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
+        )
 
         camera_capture_button.setOnClickListener { takePhoto() }
 
@@ -53,16 +58,55 @@ class MainActivity : AppCompatActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
+    private fun saveBitmap(bitmap: Bitmap, url: String) {
+        try {
+            val photoFile = File(
+                outputDirectory,
+                "wm_$url"
+            )
+            Log.d(TAG, "saveBitmap to path: " + photoFile.absolutePath)
+            val fileOutputStream = FileOutputStream(photoFile)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
+            fileOutputStream.flush()
+            fileOutputStream.close()
+
+            baseContext.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,Uri.parse("file://"+photoFile.parent)))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun getWaterMarkText(): String {
+        location.refrestOnceLocation()
+
+        val ret = String.format(
+            "%s \n" +
+                    "经度: %f 纬度: %f \n" +
+                    "地区: %s \n" +
+                    "方位角: %f \n" +
+                    "时间: %s \n",
+            location.address,
+            location.longtitude,
+            location.latitude,
+            location.country+location.province+location.city+location.street,
+            location.bearing,
+            SimpleDateFormat(TIME_FORMAT,Locale.CHINA).format(location.date)
+        )
+        Log.d(TAG, "getWaterMarkText: \n$ret")
+        return ret
+    }
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return;
         Log.d(TAG, "takePhoto: called")
+        val filename = SimpleDateFormat(
+            FILENAME_FORMAT,
+            Locale.CHINA
+        ).format(System.currentTimeMillis()) + ".jpg"
 
         val photoFile = File(
             outputDirectory,
-            SimpleDateFormat(
-                FILENAME_FORMAT,
-                Locale.CHINA
-            ).format(System.currentTimeMillis()) + ".jpg"
+            filename
         )
         Log.d(TAG, "takePhoto: photoFile=" + photoFile.absolutePath);
 
@@ -81,6 +125,10 @@ class MainActivity : AppCompatActivity() {
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+                    val resBitmap = ImageUtils.drawTextLeftBottom(baseContext,photoFile,getWaterMarkText(),30,5,R.color.watermark_white)
+                    if (resBitmap != null) {
+                        saveBitmap(resBitmap, filename)
+                    }
                 }
             })
     }
@@ -131,6 +179,7 @@ class MainActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionGranted()) {
                 startCamera()
@@ -144,23 +193,11 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXBaisc"
-        private const val FILENAME_FORMAT = "yyy-MM-dd-HH-mm-ss-SSS"
+        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
         private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA,Manifest.permission.ACCESS_COARSE_LOCATION)
-    }
-
-    private inner class LuminosityAnalyzer(private val listener: LuminosityAnalyzer) :
-        ImageAnalysis.Analyzer {
-
-        override fun analyze(image: ImageProxy) {
-//            val buffer = image.planes[0].buffer
-//            val data = buffer.toByteArray()
-//            val pixels = data.map { it.toInt() and 0xFF }
-//            val luma = pixels.average()
-
-
-            image.close()
-        }
+        private val REQUIRED_PERMISSIONS =
+            arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_COARSE_LOCATION)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
