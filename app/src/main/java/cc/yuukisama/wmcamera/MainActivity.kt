@@ -1,6 +1,8 @@
 package cc.yuukisama.wmcamera
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -70,7 +72,12 @@ class MainActivity : AppCompatActivity() {
             fileOutputStream.flush()
             fileOutputStream.close()
 
-            baseContext.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,Uri.parse("file://"+photoFile.parent)))
+            baseContext.sendBroadcast(
+                Intent(
+                    Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                    Uri.parse("file://" + photoFile.parent)
+                )
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -88,16 +95,17 @@ class MainActivity : AppCompatActivity() {
             location.address,
             location.longtitude,
             location.latitude,
-            location.country+location.province+location.city+location.street,
+            location.country + location.province + location.city + location.street,
             location.bearing,
-            SimpleDateFormat(TIME_FORMAT,Locale.CHINA).format(location.date)
+            SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(location.date)
         )
         Log.d(TAG, "getWaterMarkText: \n$ret")
         return ret
     }
 
     private fun takePhoto() {
-        val imageCapture = imageCapture ?: return;
+        startCaptureAnim()
+        val imageCapture = imageCapture ?: return
         Log.d(TAG, "takePhoto: called")
         val filename = SimpleDateFormat(
             FILENAME_FORMAT,
@@ -118,6 +126,7 @@ class MainActivity : AppCompatActivity() {
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                    stopCaptureAnim()
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
@@ -125,12 +134,30 @@ class MainActivity : AppCompatActivity() {
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
-                    val resBitmap = ImageUtils.drawTextLeftBottom(baseContext,photoFile,getWaterMarkText(),30,5,R.color.watermark_white)
+                    val resBitmap = ImageUtils.drawTextLeftBottom(
+                        baseContext,
+                        photoFile,
+                        getWaterMarkText(),
+                        30,
+                        5,
+                        R.color.watermark_white
+                    )
                     if (resBitmap != null) {
                         saveBitmap(resBitmap, filename)
                     }
+                    stopCaptureAnim()
                 }
             })
+    }
+
+    private fun startCaptureAnim(){
+        camera_capture_button.isEnabled = false
+        camera_capture_button.alpha = 0.5f
+    }
+
+    private fun stopCaptureAnim(){
+        camera_capture_button.isEnabled = true
+        camera_capture_button.alpha = 1f
     }
 
     private fun startCamera() {
