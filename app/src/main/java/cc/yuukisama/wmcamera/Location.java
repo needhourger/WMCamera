@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -34,6 +35,8 @@ public class Location implements AMapLocationListener {
     private final AMapLocationClient mLocationClient;
     private AMapLocationClientOption mLocationOption;
     private AMapLocation mlocation;
+
+    private int preErrorCode;
 
     public int locationType;
     public double latitude;
@@ -145,7 +148,13 @@ public class Location implements AMapLocationListener {
                     Log.i(TAG, "onLocationChanged: no location permission");
                 default:
                     Log.i(TAG, "onLocationChanged: errcode = " + aMapLocation.getErrorCode() + "\n" + aMapLocation.getErrorInfo());
+                    if (preErrorCode != aMapLocation.getErrorCode()){
+                        Toast.makeText(mContext, aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
+                        preErrorCode = aMapLocation.getErrorCode();
+                    }
+
             }
+
         }
     }
 

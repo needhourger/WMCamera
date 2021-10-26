@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         location = Location(
             baseContext,
-            AMapLocationClientOption.AMapLocationPurpose.SignIn,
+            AMapLocationClientOption.AMapLocationPurpose.Sport,
             AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
         )
 
