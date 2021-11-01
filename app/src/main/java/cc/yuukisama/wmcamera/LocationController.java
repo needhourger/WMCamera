@@ -25,7 +25,7 @@ import java.util.Date;
  * 方位角
  * 经纬度
  * */
-public class Location implements AMapLocationListener {
+public class LocationController implements AMapLocationListener {
 
     private static final String TAG = "Location";
     private static final int ID = 1001;
@@ -61,9 +61,9 @@ public class Location implements AMapLocationListener {
     public String detail;
 
 
-    public Location(Context context,
-                    AMapLocationClientOption.AMapLocationPurpose purpose,
-                    AMapLocationClientOption.AMapLocationMode mode) {
+    public LocationController(Context context,
+                              AMapLocationClientOption.AMapLocationPurpose purpose,
+                              AMapLocationClientOption.AMapLocationMode mode) {
         mContext = context;
         mLocationOption = new AMapLocationClientOption();
         mLocationOption.setLocationPurpose(purpose);

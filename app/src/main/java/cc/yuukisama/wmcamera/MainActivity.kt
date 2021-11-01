@@ -1,16 +1,12 @@
 package cc.yuukisama.wmcamera
 
 import android.Manifest
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.MotionEvent
 import android.widget.Toast
@@ -33,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var location: Location
+    private lateinit var locationController: LocationController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        location = Location(
+        locationController = LocationController(
             baseContext,
             AMapLocationClientOption.AMapLocationPurpose.Sport,
             AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
@@ -84,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getWaterMarkText(): String {
-        location.refrestOnceLocation()
+        locationController.refrestOnceLocation()
 
         val ret = String.format(
             "%s \n" +
@@ -92,12 +88,12 @@ class MainActivity : AppCompatActivity() {
                     "地区: %s \n" +
                     "方位角: %f \n" +
                     "时间: %s \n",
-            location.address,
-            location.longtitude,
-            location.latitude,
-            location.country + location.province + location.city + location.street,
-            location.bearing,
-            SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(location.date)
+            locationController.address,
+            locationController.longtitude,
+            locationController.latitude,
+            locationController.country + locationController.province + locationController.city + locationController.street,
+            locationController.bearing,
+            SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(locationController.date)
         )
         Log.d(TAG, "getWaterMarkText: \n$ret")
         return ret
