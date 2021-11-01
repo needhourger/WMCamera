@@ -16,6 +16,7 @@ import com.amap.api.location.AMapLocationListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 /*
@@ -101,6 +102,27 @@ public class LocationController implements AMapLocationListener {
                 latitude, longtitude, address, country, province, city, district, street, aoiName, date
         );
         Log.d(TAG, "dump: \n" + ret);
+    }
+
+    public String getWaterMarkText() {
+        refrestOnceLocation();
+
+        @SuppressLint("DefaultLocale")
+        String ret = String.format(
+                "%s \n" +
+                        "经度: %f 纬度: %f \n" +
+                        "地区: %s \n" +
+                        "方位角: %f \n" +
+                        "时间: %s \n",
+                address,
+                longtitude,
+                latitude,
+                country + province + city + street,
+                bearing,
+                new SimpleDateFormat(MainActivity.TIME_FORMAT, Locale.CHINA).format(date)
+        );
+        Log.d(TAG, "getWaterMarkText: \n"+ret);
+        return ret;
     }
 
     @Override

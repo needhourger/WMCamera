@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var locationController: LocationController
+    private lateinit var mLocationController: LocationController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        locationController = LocationController(
+        mLocationController = LocationController(
             baseContext,
             AMapLocationClientOption.AMapLocationPurpose.Sport,
             AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
@@ -77,26 +77,6 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    private fun getWaterMarkText(): String {
-        locationController.refrestOnceLocation()
-
-        val ret = String.format(
-            "%s \n" +
-                    "经度: %f 纬度: %f \n" +
-                    "地区: %s \n" +
-                    "方位角: %f \n" +
-                    "时间: %s \n",
-            locationController.address,
-            locationController.longtitude,
-            locationController.latitude,
-            locationController.country + locationController.province + locationController.city + locationController.street,
-            locationController.bearing,
-            SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(locationController.date)
-        )
-        Log.d(TAG, "getWaterMarkText: \n$ret")
-        return ret
     }
 
     private fun takePhoto() {
@@ -133,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                     val resBitmap = ImageUtils.drawTextLeftBottom(
                         baseContext,
                         photoFile,
-                        getWaterMarkText(),
+                        mLocationController.getWaterMarkText(),
                         30,
                         5,
                         R.color.watermark_white
@@ -217,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "CameraXBaisc"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        private const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
+        const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_COARSE_LOCATION)
