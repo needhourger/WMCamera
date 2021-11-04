@@ -148,10 +148,10 @@ class ImageUtils {
         private fun getMaxLineWidth(texts: List<String>, textsize: Int): Float {
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
             paint.textSize = textsize.toFloat()
-            var maxlen:Float = 0F
-            for (text:String in texts){
-                val t=paint.measureText(text)
-                if (t>maxlen) maxlen=t
+            var maxlen: Float = 0F
+            for (text: String in texts) {
+                val t = paint.measureText(text)
+                if (t > maxlen) maxlen = t
             }
             return maxlen
         }

@@ -6,7 +6,8 @@
         <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.21875" />
         <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/drawable/capture_button.xml" value="0.1953125" />
         <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/drawable/ic_launcher_background.xml" value="0.21875" />
-        <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/layout/activity_main.xml" value="0.17916666666666667" />
+        <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="../../../../mnt/ext/Workspace/WMCamera/app/src/main/res/layout/camera_view.xml" value="0.221875" />
       </map>
     </option>
   </component>
