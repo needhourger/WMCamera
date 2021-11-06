@@ -56,7 +56,7 @@ public class LocationController implements AMapLocationListener {
     public String buildingId;
     public String floor;
     public int gpsAccuracyStatus;
-    public Date date;
+    public Date date = new Date(System.currentTimeMillis());
     public float bearing;
     public String description;
     public String detail;
@@ -69,7 +69,7 @@ public class LocationController implements AMapLocationListener {
         mLocationOption = new AMapLocationClientOption();
         mLocationOption.setLocationPurpose(purpose);
         mLocationOption.setLocationMode(mode);
-        if (purpose == AMapLocationClientOption.AMapLocationPurpose.SignIn){
+        if (purpose == AMapLocationClientOption.AMapLocationPurpose.SignIn) {
             mLocationOption.setOnceLocation(true);
             mLocationOption.setOnceLocationLatest(true);
         }
@@ -78,7 +78,7 @@ public class LocationController implements AMapLocationListener {
         mLocationClient = new AMapLocationClient(mContext);
         mLocationClient.setLocationOption(mLocationOption);
         mLocationClient.setLocationListener(this);
-        if (purpose != AMapLocationClientOption.AMapLocationPurpose.SignIn){
+        if (purpose != AMapLocationClientOption.AMapLocationPurpose.SignIn) {
             mLocationClient.enableBackgroundLocation(ID, buildNotification());
         }
         mLocationClient.startLocation();
@@ -114,14 +114,14 @@ public class LocationController implements AMapLocationListener {
                         "地区: %s \n" +
                         "方位角: %f \n" +
                         "时间: %s \n",
-                address,
+                address == null ? "" : address,
                 longtitude,
                 latitude,
-                country + province + city + street,
+                address == null ? "" : country + province + city + street,
                 bearing,
                 new SimpleDateFormat(MainActivity.TIME_FORMAT, Locale.CHINA).format(date)
         );
-        Log.d(TAG, "getWaterMarkText: \n"+ret);
+        Log.d(TAG, "getWaterMarkText: \n" + ret);
         return ret;
     }
 
@@ -170,7 +170,7 @@ public class LocationController implements AMapLocationListener {
                     Log.i(TAG, "onLocationChanged: no location permission");
                 default:
                     Log.i(TAG, "onLocationChanged: errcode = " + aMapLocation.getErrorCode() + "\n" + aMapLocation.getErrorInfo());
-                    if (preErrorCode != aMapLocation.getErrorCode()){
+                    if (preErrorCode != aMapLocation.getErrorCode()) {
                         Toast.makeText(mContext, aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
                         preErrorCode = aMapLocation.getErrorCode();
                     }
