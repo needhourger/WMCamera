@@ -50,5 +50,7 @@ dependencies {
     // CameraX View class
     implementation "androidx.camera:camera-view:1.0.0-alpha27"
 
-    implementation fileTree(includes: ['*.jar'], dir: 'libs')
+    // Amap
+    implementation 'com.amap.api:location:latest.integration'
+
 }
