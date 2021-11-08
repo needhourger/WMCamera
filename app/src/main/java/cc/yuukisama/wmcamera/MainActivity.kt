@@ -93,7 +93,9 @@ class MainActivity : AppCompatActivity() {
         const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
-            arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_COARSE_LOCATION)
+            arrayOf(Manifest.permission.CAMERA,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION)
         val getter = Getter()
     }
 }

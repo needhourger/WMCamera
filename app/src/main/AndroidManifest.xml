@@ -55,7 +55,7 @@
             android:value="7b573e01a8bdb59b613e0c33440375ce">
         </meta-data>
 
-        <service android:name="com.amap.api.location.APSService"></service>
+        <service android:name="com.amap.api.location.APSService" />
 
     </application>
 
