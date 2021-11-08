@@ -16,6 +16,7 @@ import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import kotlinx.android.synthetic.main.camera_view.view.*
 import java.io.File
 import java.io.FileOutputStream
@@ -75,6 +76,7 @@ class CameraView @JvmOverloads constructor(
                         val point = pos?.let { factory.createPoint(it.x,pos.y) }
                         val action = point?.let { FocusMeteringAction.Builder(it).build() }
                         if (action != null) {
+                            startFocusAnim(pos)
                             mCamera.cameraControl.startFocusAndMetering(action)
                         }
                         return true
@@ -85,6 +87,19 @@ class CameraView @JvmOverloads constructor(
             }
         }, ContextCompat.getMainExecutor(mContext))
     }
+    private val dismissFocusAnim: () -> Unit ={
+        focus_image.visibility = GONE
+    }
+    private fun startFocusAnim(pos:MotionEvent){
+        if (focus_image.isVisible){
+            handler.removeCallbacks(dismissFocusAnim)
+        }
+        focus_image.x = pos.x-focus_image.width / 2
+        focus_image.y = pos.y-focus_image.height / 2
+        focus_image.visibility = VISIBLE
+        handler.postDelayed(dismissFocusAnim,1600)
+    }
+
 
     private val orientationEventListener by lazy {
         object : OrientationEventListener(mContext){
