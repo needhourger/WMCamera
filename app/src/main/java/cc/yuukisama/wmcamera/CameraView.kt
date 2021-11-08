@@ -7,13 +7,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
+import android.view.OrientationEventListener
+import android.view.Surface
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.Toast
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.camera_view.view.*
@@ -52,21 +51,44 @@ class CameraView @JvmOverloads constructor(
         cameraProviderFuture.addListener(Runnable {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val preview = Preview.Builder().build().also {
+            val preView = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
 
-            imageCapture = ImageCapture.Builder().build()
+            imageCapture = ImageCapture.Builder()
+                .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
+                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .build()
+            orientationEventListener.enable()
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(MainActivity.getter.getActivity(), cameraSelector, preview, imageCapture)
+                cameraProvider.bindToLifecycle(MainActivity.getter.getActivity(), cameraSelector, preView, imageCapture)
             } catch (e: Exception) {
                 Log.e(TAG, "startCamera: binding lifecycle failed", e)
             }
         }, ContextCompat.getMainExecutor(mContext))
+    }
+
+    private val orientationEventListener by lazy {
+        object : OrientationEventListener(mContext){
+            override fun onOrientationChanged(orientation: Int) {
+                if (orientation == ORIENTATION_UNKNOWN){
+                    return
+                }
+                val rotation = when(orientation){
+                    in 45 until 135 -> Surface.ROTATION_270
+                    in 135 until 225 -> Surface.ROTATION_180
+                    in 225 until 315 -> Surface.ROTATION_90
+                    else -> Surface.ROTATION_0
+                }
+
+                imageCapture?.targetRotation = rotation
+            }
+        }
     }
 
     private fun initView() {
