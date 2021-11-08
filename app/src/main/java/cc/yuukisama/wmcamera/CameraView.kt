@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
@@ -36,6 +37,7 @@ class CameraView @JvmOverloads constructor(
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var mLocationController: LocationController
+    private lateinit var mCamera:Camera
 
     init {
         initView()
@@ -66,7 +68,18 @@ class CameraView @JvmOverloads constructor(
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(MainActivity.getter.getActivity(), cameraSelector, preView, imageCapture)
+                mCamera = cameraProvider.bindToLifecycle(MainActivity.getter.getActivity(), cameraSelector, preView, imageCapture)
+                viewFinder.setOnTouchListener(object:OnTouchListener{
+                    override fun onTouch(view: View?, pos: MotionEvent?): Boolean {
+                        val factory = viewFinder.meteringPointFactory
+                        val point = pos?.let { factory.createPoint(it.x,pos.y) }
+                        val action = point?.let { FocusMeteringAction.Builder(it).build() }
+                        if (action != null) {
+                            mCamera.cameraControl.startFocusAndMetering(action)
+                        }
+                        return true
+                    }
+                })
             } catch (e: Exception) {
                 Log.e(TAG, "startCamera: binding lifecycle failed", e)
             }
