@@ -38,7 +38,7 @@ class CameraView @JvmOverloads constructor(
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var mLocationController: LocationController
-    private lateinit var mCamera:Camera
+    private lateinit var mCamera: Camera
 
     init {
         initView()
@@ -69,11 +69,16 @@ class CameraView @JvmOverloads constructor(
 
             try {
                 cameraProvider.unbindAll()
-                mCamera = cameraProvider.bindToLifecycle(MainActivity.getter.getActivity(), cameraSelector, preView, imageCapture)
-                viewFinder.setOnTouchListener(object:OnTouchListener{
+                mCamera = cameraProvider.bindToLifecycle(
+                    MainActivity.getter.getActivity(),
+                    cameraSelector,
+                    preView,
+                    imageCapture
+                )
+                viewFinder.setOnTouchListener(object : OnTouchListener {
                     override fun onTouch(view: View?, pos: MotionEvent?): Boolean {
                         val factory = viewFinder.meteringPointFactory
-                        val point = pos?.let { factory.createPoint(it.x,pos.y) }
+                        val point = pos?.let { factory.createPoint(it.x, pos.y) }
                         val action = point?.let { FocusMeteringAction.Builder(it).build() }
                         if (action != null) {
                             startFocusAnim(pos)
@@ -87,27 +92,25 @@ class CameraView @JvmOverloads constructor(
             }
         }, ContextCompat.getMainExecutor(mContext))
     }
-    private val dismissFocusAnim: () -> Unit ={
-        focus_image.visibility = GONE
-    }
-    private fun startFocusAnim(pos:MotionEvent){
-        if (focus_image.isVisible){
+
+    private val dismissFocusAnim: () -> Unit = { focus_image.visibility = GONE }
+    private fun startFocusAnim(pos: MotionEvent) {
+        if (focus_image.isVisible) {
             handler.removeCallbacks(dismissFocusAnim)
         }
-        focus_image.x = pos.x-focus_image.width / 2
-        focus_image.y = pos.y-focus_image.height / 2
+        focus_image.x = pos.x - focus_image.width / 2
+        focus_image.y = pos.y - focus_image.height / 2
         focus_image.visibility = VISIBLE
-        handler.postDelayed(dismissFocusAnim,1600)
+        handler.postDelayed(dismissFocusAnim, 1600)
     }
-
-
+    
     private val orientationEventListener by lazy {
-        object : OrientationEventListener(mContext){
+        object : OrientationEventListener(mContext) {
             override fun onOrientationChanged(orientation: Int) {
-                if (orientation == ORIENTATION_UNKNOWN){
+                if (orientation == ORIENTATION_UNKNOWN) {
                     return
                 }
-                val rotation = when(orientation){
+                val rotation = when (orientation) {
                     in 45 until 135 -> Surface.ROTATION_270
                     in 135 until 225 -> Surface.ROTATION_180
                     in 225 until 315 -> Surface.ROTATION_90
