@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="85dp"
-    android:height="85dp"
+    android:width="@dimen/capture_button_width"
+    android:height="@dimen/capture_button_width"
     android:viewportWidth="1024"
     android:viewportHeight="1024">
 

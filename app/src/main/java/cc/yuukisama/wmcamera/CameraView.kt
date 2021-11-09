@@ -15,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import kotlinx.android.synthetic.main.camera_view.view.*
@@ -39,6 +40,7 @@ class CameraView @JvmOverloads constructor(
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var mLocationController: LocationController
     private lateinit var mCamera: Camera
+    private lateinit var previewView:Preview
 
     init {
         initView()
@@ -54,7 +56,7 @@ class CameraView @JvmOverloads constructor(
         cameraProviderFuture.addListener(Runnable {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            val preView = Preview.Builder().build().also {
+            previewView = Preview.Builder().build().also {
                 it.setSurfaceProvider(viewFinder.surfaceProvider)
             }
 
@@ -72,7 +74,7 @@ class CameraView @JvmOverloads constructor(
                 mCamera = cameraProvider.bindToLifecycle(
                     MainActivity.getter.getActivity(),
                     cameraSelector,
-                    preView,
+                    previewView,
                     imageCapture
                 )
                 viewFinder.setOnTouchListener(object : OnTouchListener {
@@ -116,7 +118,6 @@ class CameraView @JvmOverloads constructor(
                     in 225 until 315 -> Surface.ROTATION_90
                     else -> Surface.ROTATION_0
                 }
-
                 imageCapture?.targetRotation = rotation
             }
         }
