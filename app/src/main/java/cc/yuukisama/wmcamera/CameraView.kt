@@ -103,7 +103,7 @@ class CameraView @JvmOverloads constructor(
         focus_image.visibility = VISIBLE
         handler.postDelayed(dismissFocusAnim, 1600)
     }
-    
+
     private val orientationEventListener by lazy {
         object : OrientationEventListener(mContext) {
             override fun onOrientationChanged(orientation: Int) {

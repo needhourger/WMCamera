@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var mLocationController:LocationController
+    private lateinit var mLocationController: LocationController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,25 +77,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    class Getter{
-        private lateinit var mActivity:MainActivity
-        fun getActivity():MainActivity{
+    class Getter {
+        private lateinit var mActivity: MainActivity
+        fun getActivity(): MainActivity {
             return mActivity
         }
-        fun setActivity(activity: MainActivity){
+
+        fun setActivity(activity: MainActivity) {
             mActivity = activity
         }
     }
 
     companion object {
-        private const val TAG = "CameraXBaisc"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val TAG = "MainActivity"
         const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
-            arrayOf(Manifest.permission.CAMERA,
+            arrayOf(
+                Manifest.permission.CAMERA,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION)
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
         val getter = Getter()
     }
 }
