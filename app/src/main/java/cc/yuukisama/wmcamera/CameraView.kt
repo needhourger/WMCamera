@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.camera.core.*
@@ -40,7 +41,7 @@ class CameraView @JvmOverloads constructor(
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var mLocationController: LocationController
     private lateinit var mCamera: Camera
-    private lateinit var previewView:Preview
+    private lateinit var previewView: Preview
 
     init {
         initView()
@@ -118,6 +119,13 @@ class CameraView @JvmOverloads constructor(
                     in 225 until 315 -> Surface.ROTATION_90
                     else -> Surface.ROTATION_0
                 }
+                val buttonRotation = when(orientation){
+                    in 45 until 135 -> 270f
+                    in 135 until 225 -> 180f
+                    in 225 until 315 -> 90f
+                    else -> 0f
+                }
+                switch_button.rotation = buttonRotation
                 imageCapture?.targetRotation = rotation
             }
         }
