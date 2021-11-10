@@ -68,7 +68,8 @@ class CameraView @JvmOverloads constructor(
                 .build()
             orientationEventListener.enable()
 
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector =
+                if (isback) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
 
             try {
                 cameraProvider.unbindAll()
@@ -90,6 +91,18 @@ class CameraView @JvmOverloads constructor(
                         return true
                     }
                 })
+                switch_button.setOnClickListener {
+                    isback = !isback
+                    val cameraSelector =
+                        if (isback) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+                    cameraProvider.unbindAll()
+                    mCamera = cameraProvider.bindToLifecycle(
+                        MainActivity.getter.getActivity(),
+                        cameraSelector,
+                        previewView,
+                        imageCapture
+                    )
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "startCamera: binding lifecycle failed", e)
             }
@@ -119,7 +132,7 @@ class CameraView @JvmOverloads constructor(
                     in 225 until 315 -> Surface.ROTATION_90
                     else -> Surface.ROTATION_0
                 }
-                val buttonRotation = when(orientation){
+                val buttonRotation = when (orientation) {
                     in 45 until 135 -> 270f
                     in 135 until 225 -> 180f
                     in 225 until 315 -> 90f
@@ -233,8 +246,6 @@ class CameraView @JvmOverloads constructor(
         private const val TAG = "CameraXBaisc"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS =
-            arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_COARSE_LOCATION)
+        private var isback = true
     }
 }
