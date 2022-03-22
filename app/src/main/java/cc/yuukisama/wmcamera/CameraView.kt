@@ -143,6 +143,7 @@ class CameraView @JvmOverloads constructor(
                     else -> 0f
                 }
                 switchButton.rotation = buttonRotation
+                ocrButton.rotation = buttonRotation
                 imageCapture?.targetRotation = rotation
             }
         }
@@ -155,8 +156,13 @@ class CameraView @JvmOverloads constructor(
         ocrButton = findViewById(R.id.ocr_button)
 
         captureButton.setOnClickListener { takePhoto() }
+        ocrButton.setOnClickListener{ startOCRActivity() }
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
+    }
+
+    private fun startOCRActivity() {
+
     }
 
     private fun takePhoto() {
