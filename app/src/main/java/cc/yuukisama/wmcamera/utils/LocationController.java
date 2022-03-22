@@ -116,11 +116,13 @@ public class LocationController implements AMapLocationListener {
 
         @SuppressLint("DefaultLocale")
         String ret = String.format(
-                "%s \n" +
-                        "经度: %f 纬度: %f \n" +
-                        "地区: %s \n" +
-                        "方位角: %f \n" +
-                        "时间: %s \n",
+                "%s\n" +
+                "%s\n" +
+                "经度: %f 纬度: %f\n" +
+                "地区: %s\n" +
+                "方位角: %f\n" +
+                "时间: %s\n",
+                mContext.getResources().getString(R.string.water_mark_title),
                 address == null ? "" : address,
                 longtitude,
                 latitude,
