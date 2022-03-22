@@ -1,28 +1,14 @@
 package cc.yuukisama.wmcamera
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.MotionEvent
 import android.widget.Toast
-import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.amap.api.location.AMapLocationClientOption
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
-import java.io.FileOutputStream
-import java.lang.Exception
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mLocationController: LocationController
