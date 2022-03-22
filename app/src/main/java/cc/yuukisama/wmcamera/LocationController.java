@@ -64,7 +64,7 @@ public class LocationController implements AMapLocationListener {
 
     public LocationController(Context context,
                               AMapLocationClientOption.AMapLocationPurpose purpose,
-                              AMapLocationClientOption.AMapLocationMode mode) {
+                              AMapLocationClientOption.AMapLocationMode mode) throws Exception {
         mContext = context;
         mLocationOption = new AMapLocationClientOption();
         mLocationOption.setLocationPurpose(purpose);
@@ -74,6 +74,10 @@ public class LocationController implements AMapLocationListener {
             mLocationOption.setOnceLocationLatest(true);
         }
         mLocationOption.setSensorEnable(true);
+
+        // Amp individual privacy
+        AMapLocationClient.updatePrivacyShow(context,true,true);
+        AMapLocationClient.updatePrivacyAgree(context,true);
 
         mLocationClient = new AMapLocationClient(mContext);
         mLocationClient.setLocationOption(mLocationOption);
