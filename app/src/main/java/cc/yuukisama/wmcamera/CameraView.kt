@@ -11,6 +11,7 @@ import android.view.OrientationEventListener
 import android.view.Surface
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -41,6 +42,10 @@ class CameraView @JvmOverloads constructor(
     private lateinit var mLocationController: LocationController
     private lateinit var mCamera: Camera
     private lateinit var previewView: Preview
+
+    private lateinit var captureButton: ImageButton
+    private lateinit var switchButton: ImageButton
+    private lateinit var ocrButton:ImageButton
 
     init {
         initView()
@@ -90,7 +95,7 @@ class CameraView @JvmOverloads constructor(
                         return true
                     }
                 })
-                switch_button.setOnClickListener {
+                switchButton.setOnClickListener {
                     isback = !isback
                     val cameraSelector =
                         if (isback) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
@@ -137,7 +142,7 @@ class CameraView @JvmOverloads constructor(
                     in 225 until 315 -> 90f
                     else -> 0f
                 }
-                switch_button.rotation = buttonRotation
+                switchButton.rotation = buttonRotation
                 imageCapture?.targetRotation = rotation
             }
         }
@@ -145,7 +150,11 @@ class CameraView @JvmOverloads constructor(
 
     private fun initView() {
         View.inflate(mContext, R.layout.camera_view, this)
-        camera_capture_button.setOnClickListener { takePhoto() }
+        captureButton = findViewById(R.id.capture_Button)
+        switchButton = findViewById(R.id.switch_button)
+        ocrButton = findViewById(R.id.ocr_button)
+
+        captureButton.setOnClickListener { takePhoto() }
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
@@ -228,13 +237,13 @@ class CameraView @JvmOverloads constructor(
     }
 
     private fun startCaptureAnim() {
-        camera_capture_button.isEnabled = false
-        camera_capture_button.alpha = 0.5f
+        captureButton.isEnabled = false
+        captureButton.alpha = 0.5f
     }
 
     private fun stopCaptureAnim() {
-        camera_capture_button.isEnabled = true
-        camera_capture_button.alpha = 1f
+        captureButton.isEnabled = true
+        captureButton.alpha = 1f
     }
 
     fun shutdown() {
