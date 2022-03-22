@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import cc.yuukisama.wmcamera.utils.LocationController
+import cc.yuukisama.wmcamera.utils.Permission
 import com.amap.api.location.AMapLocationClientOption
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -22,11 +23,13 @@ class MainActivity : AppCompatActivity() {
 
         getter.setActivity(this)
 
-        if (allPermissionGranted()) {
+        if (Permission.allPermissionGranted(baseContext)) {
             mCameraView.startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+                this,
+                Permission.REQUIRED_PERMISSIONS,
+                Permission.REQUEST_CODE_PERMISSIONS
             )
         }
 
@@ -36,12 +39,6 @@ class MainActivity : AppCompatActivity() {
             AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
         )
         mCameraView.setLocationController(mLocationController)
-    }
-
-    private fun allPermissionGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it
-        ) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onDestroy() {
@@ -55,8 +52,8 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionGranted()) {
+        if (requestCode == Permission.REQUEST_CODE_PERMISSIONS) {
+            if (Permission.allPermissionGranted(baseContext)) {
                 mCameraView.startCamera()
             } else {
                 Toast.makeText(this, "Permission not granted by the user", Toast.LENGTH_SHORT)
@@ -80,13 +77,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS =
-            arrayOf(
-                Manifest.permission.CAMERA,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
         val getter = Getter()
     }
 }

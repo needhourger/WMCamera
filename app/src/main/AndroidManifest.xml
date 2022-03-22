@@ -38,6 +38,16 @@
             </intent-filter>
         </activity>
 
+        <provider
+            android:authorities="wmcamera"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths">
+            </meta-data>
+        </provider>
+
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="7b573e01a8bdb59b613e0c33440375ce" />

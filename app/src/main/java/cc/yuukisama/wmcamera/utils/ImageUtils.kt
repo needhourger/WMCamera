@@ -196,6 +196,24 @@ class ImageUtils {
             val scale = context.resources.displayMetrics.density
             return (dp * scale + 0.5f).toInt()
         }
+
+        fun convertGray(imageFile:File):Bitmap {
+            val angle = readPictureDegree(imageFile)
+            val tBitmap = BitmapFactory.decodeFile(imageFile.path)
+            val bitmap = rotaingBitmap(angle, tBitmap)
+
+            val colorMatrix = ColorMatrix()
+            colorMatrix.setSaturation(0F)
+            val filter = ColorMatrixColorFilter(colorMatrix)
+
+            val paint = Paint()
+            paint.setColorFilter(filter)
+            val result = Bitmap.createBitmap(bitmap.width,bitmap.height,Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(result)
+
+            canvas.drawBitmap(bitmap,0f,0f,paint)
+            return result
+        }
     }
 
 }

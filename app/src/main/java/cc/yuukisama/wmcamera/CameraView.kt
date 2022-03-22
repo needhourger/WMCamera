@@ -12,13 +12,19 @@ import android.view.Surface
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.core.view.children
 import androidx.core.view.isVisible
+import androidx.core.view.setPadding
 import cc.yuukisama.wmcamera.utils.ImageUtils
 import cc.yuukisama.wmcamera.utils.LocationController
+import cc.yuukisama.wmcamera.utils.Tess4A
 import kotlinx.android.synthetic.main.camera_view.view.*
 import java.io.File
 import java.io.FileOutputStream
@@ -33,19 +39,23 @@ class CameraView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
-
     private val mContext: Context = context
+    private val tess4A = Tess4A(context)
 
     private var imageCapture: ImageCapture? = null
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
-    private lateinit var mLocationController: LocationController
     private lateinit var mCamera: Camera
     private lateinit var previewView: Preview
 
     private lateinit var captureButton: ImageButton
     private lateinit var switchButton: ImageButton
     private lateinit var ocrButton:ImageButton
+    private lateinit var waterMarkButton:ImageButton
+    private lateinit var modeBar:LinearLayout
+
+    private var mLocationController: LocationController? = null
+    private var cameraMode = Mode.WATERMARK
 
     init {
         initView()
@@ -144,6 +154,7 @@ class CameraView @JvmOverloads constructor(
                 }
                 switchButton.rotation = buttonRotation
                 ocrButton.rotation = buttonRotation
+                waterMarkButton.rotation = buttonRotation
                 imageCapture?.targetRotation = rotation
             }
         }
@@ -153,18 +164,39 @@ class CameraView @JvmOverloads constructor(
         View.inflate(mContext, R.layout.camera_view, this)
         captureButton = findViewById(R.id.capture_Button)
         switchButton = findViewById(R.id.switch_button)
+        modeBar = findViewById(R.id.mode_bar)
         ocrButton = findViewById(R.id.ocr_button)
+        waterMarkButton = findViewById(R.id.watermark_button)
 
         captureButton.setOnClickListener { takePhoto() }
-        ocrButton.setOnClickListener{ startOCRActivity() }
+        ocrButton.setOnClickListener{
+            cameraMode = Mode.OCR;
+            updateModeIcon()
+        }
+        waterMarkButton.setOnClickListener{
+            cameraMode = Mode.WATERMARK
+            updateModeIcon()
+        }
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
+        updateModeIcon()
     }
 
-    private fun startOCRActivity() {
-        val activity = MainActivity.getter.getActivity()
-        val intent = Intent(activity,OCRActivity::class.java)
-        activity.startActivity(intent)
+    private fun updateModeIcon() {
+        for (view in modeBar.children) {
+            view.setPadding(context.resources.getDimensionPixelOffset(R.dimen.mode_bar_icon_default_padding))
+        }
+        when (cameraMode) {
+            Mode.OCR -> {
+                ocrButton.setPadding(context.resources.getDimensionPixelOffset(R.dimen.mode_bar_icon_active_padding))
+                Toast.makeText(context,"OCR 模式已开启",Toast.LENGTH_SHORT).show()
+            }
+            Mode.WATERMARK -> {
+                waterMarkButton.setPadding(mContext.resources.getDimensionPixelSize(R.dimen.mode_bar_icon_active_padding))
+                Toast.makeText(context,"水印相机 模式已开启",Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
 
     private fun takePhoto() {
@@ -198,20 +230,39 @@ class CameraView @JvmOverloads constructor(
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
-                    val resBitmap = ImageUtils.drawTextLeftBottom(
-                        mContext,
-                        photoFile,
-                        mLocationController.getWaterMarkText(),
-                        30,
-                        5,
-                        R.color.watermark_white
-                    )
-                    if (resBitmap != null) {
-                        saveBitmap(resBitmap, filename)
-                    }
                     stopCaptureAnim()
+                    when (cameraMode) {
+                        Mode.WATERMARK -> saveWaterMarkPhoto(photoFile,filename)
+                        Mode.OCR -> processOCR(photoFile)
+                    }
                 }
             })
+    }
+
+    private val CROP_REQUEST_CODE = 3
+    private fun processOCR(photoFile: File) {
+        val runnable = Runnable {
+            val res = tess4A.doOCR(ImageUtils.convertGray(photoFile))
+        }
+        post(runnable)
+    }
+
+
+
+    private fun saveWaterMarkPhoto(photoFile:File,filename:String) {
+        val resBitmap = mLocationController?.let {
+            ImageUtils.drawTextLeftBottom(
+                mContext,
+                photoFile,
+                it.getWaterMarkText(),
+                30,
+                5,
+                R.color.watermark_white
+            )
+        }
+        if (resBitmap != null) {
+            saveBitmap(resBitmap, filename)
+        }
     }
 
     private fun saveBitmap(bitmap: Bitmap, url: String) {
@@ -263,5 +314,10 @@ class CameraView @JvmOverloads constructor(
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         const val TIME_FORMAT = "yyy.MM.dd HH:mm:ss"
         private var isback = true
+    }
+
+    enum class Mode {
+        WATERMARK,
+        OCR
     }
 }
