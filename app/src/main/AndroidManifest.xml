@@ -27,7 +27,6 @@
             android:name=".OCRActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="false"
-            android:label="@string/title_activity_ocractivity"
             android:theme="@style/Theme.WMCamera.Fullscreen" />
         <activity
             android:name=".MainActivity"

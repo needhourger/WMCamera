@@ -162,7 +162,9 @@ class CameraView @JvmOverloads constructor(
     }
 
     private fun startOCRActivity() {
-
+        val activity = MainActivity.getter.getActivity()
+        val intent = Intent(activity,OCRActivity::class.java)
+        activity.startActivity(intent)
     }
 
     private fun takePhoto() {

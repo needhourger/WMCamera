@@ -1,8 +1,4 @@
 <resources>
     <string name="app_name">WMCamera</string>
-    <string name="title_activity_ocractivity">OCRActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
-
     <string name="water_mark_title">场地土壤污染成因与治理技术专项</string>
 </resources>
