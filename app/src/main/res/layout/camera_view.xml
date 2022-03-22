@@ -14,7 +14,7 @@
         android:scaleType="fitCenter"
         android:src="@drawable/capture_button" />
 
-    <androidx.constraintlayout.utils.widget.ImageFilterButton
+    <ImageView
         android:id="@+id/switch_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

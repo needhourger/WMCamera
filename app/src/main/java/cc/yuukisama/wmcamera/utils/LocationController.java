@@ -1,4 +1,4 @@
-package cc.yuukisama.wmcamera;
+package cc.yuukisama.wmcamera.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -17,6 +17,9 @@ import com.amap.api.location.AMapLocationListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import cc.yuukisama.wmcamera.MainActivity;
+import cc.yuukisama.wmcamera.R;
 
 
 /*

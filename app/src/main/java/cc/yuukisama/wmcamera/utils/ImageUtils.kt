@@ -1,4 +1,4 @@
-package cc.yuukisama.wmcamera
+package cc.yuukisama.wmcamera.utils
 
 import android.content.Context
 import android.graphics.*

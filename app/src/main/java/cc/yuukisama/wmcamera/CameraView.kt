@@ -16,6 +16,8 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import cc.yuukisama.wmcamera.utils.ImageUtils
+import cc.yuukisama.wmcamera.utils.LocationController
 import kotlinx.android.synthetic.main.camera_view.view.*
 import java.io.File
 import java.io.FileOutputStream
