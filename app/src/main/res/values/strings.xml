@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">WMcamera</string>
+    <string name="water_mark_camera_title">水印相机</string>
+    <string name="ocr_camera_title">OCR文字识别</string>
+</resources>
