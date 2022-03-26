@@ -1,9 +1,11 @@
 package com.example.wmcamera
 
-import android.content.Intent
+import android.content.*
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.Uri
+import android.os.AsyncTask.execute
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -11,15 +13,21 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.example.wmcamera.utils.ImageUtils
+import com.example.wmcamera.utils.Tesseract
+import com.theartofdev.edmodo.cropper.CropImage
+import com.theartofdev.edmodo.cropper.CropImageView
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.Executor
 
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
@@ -30,12 +38,14 @@ class MainActivity : AppCompatActivity() {
 
     private var mPhotoSavePath:File? = null
     private var mCapturedImage:File? = null
+    private var mCropedImage:Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mPhotoSavePath = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        initTesseractModel()
         initViews()
     }
 
@@ -49,9 +59,54 @@ class MainActivity : AppCompatActivity() {
         mButtonOCR = findViewById(R.id.button_ocr)
         mButtonOCR.setOnClickListener{
             Log.d(TAG, "initViews: ocr button clicked")
+            startCropImage()
         }
 
         mImageView = findViewById(R.id.imageView)
+        mImageView.setOnClickListener {
+            if (mCropedImage != null) {
+                if (!Tesseract.isInited) {
+                    Toast.makeText(this,"OCR引擎尚未加载完成",Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                } else {
+                    Toast.makeText(this,"点击图片进行OCR识别",Toast.LENGTH_SHORT).show()
+                }
+                val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(mCropedImage!!))
+                val result = Tesseract.doOCR(bitmap)
+                if (result != null) {
+                    showResultDialog(result)
+                } else {
+                    Toast.makeText(this,"OCR未识别到结果",Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun showResultDialog(str:String) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("OCR 文字识别结果")
+            .setMessage(str)
+            .setIcon(R.mipmap.ic_launcher_round)
+            .setPositiveButton("确定") { p0, p1 -> }
+            .setNeutralButton("复制"){ p0,p1->
+                val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipdata:ClipData = ClipData.newPlainText("ocr",str)
+                clipBoard.setPrimaryClip(clipdata)
+            }.create()
+        dialog.show()
+    }
+
+    private fun initTesseractModel() {
+        Thread {
+            Tesseract.extractData(baseContext)
+            Tesseract.loadDataModel(baseContext)
+        }.start()
+    }
+
+    private fun startCropImage() {
+        CropImage.activity()
+            .setGuidelines(CropImageView.Guidelines.ON)
+            .start(this)
     }
 
     private fun createImageFile():File {
@@ -99,6 +154,16 @@ class MainActivity : AppCompatActivity() {
                     mImageView.setImageBitmap(bitmap)
                     saveBitmap(bitmap, mCapturedImage!!.name)
                 }
+            }
+        } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            val result = CropImage.getActivityResult(data)
+            if (resultCode == RESULT_OK) {
+                mCropedImage = result.uri
+                mImageView.setImageURI(mCropedImage)
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                val e = result.error
+                Log.e(TAG, "onActivityResult: ",e )
+                e.printStackTrace()
             }
         }
     }

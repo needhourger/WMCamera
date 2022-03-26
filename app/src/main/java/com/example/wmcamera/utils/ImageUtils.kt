@@ -11,27 +11,27 @@ class ImageUtils {
 
     companion object {
         private const val TAG = "ImageUtils"
-//        fun createWaterMask(
-//            photo: File,
-//            waterMask: Bitmap,
-//            paddingLeft: Int,
-//            paddingTop: Int
-//        ): Bitmap? {
-//            val angle = readPictureDegree(photo)
-//            val tBitmap = BitmapFactory.decodeFile(photo.path)
-//            val src = rotaingBitmap(angle,tBitmap)
-//
-//            val wmWidth =
-//                if (waterMask.width + paddingLeft > src.width) (src.width - paddingLeft) else waterMask.width
-//            val wmHeight =
-//                if (waterMask.height + paddingTop > src.height) (src.height - paddingTop) else waterMask.height
-//            if (wmHeight < 0 || wmHeight < 0) {
-//                return null
-//            }
-//            val newWm = resizeBitmap(waterMask, wmWidth, wmHeight)
-//
-//            return drawWaterMaskToBitmap(src, newWm, paddingLeft, paddingTop)
-//        }
+        fun createWaterMark(
+            photo: File,
+            waterMask: Bitmap,
+            paddingLeft: Int,
+            paddingTop: Int
+        ): Bitmap? {
+            val angle = readPictureDegree(photo)
+            val tBitmap = BitmapFactory.decodeFile(photo.path)
+            val src = rotaingBitmap(angle,tBitmap)
+
+            val wmWidth =
+                if (waterMask.width + paddingLeft > src.width) (src.width - paddingLeft) else waterMask.width
+            val wmHeight =
+                if (waterMask.height + paddingTop > src.height) (src.height - paddingTop) else waterMask.height
+            if (wmHeight < 0 || wmHeight < 0) {
+                return null
+            }
+            val newWm = resizeBitmap(waterMask, wmWidth, wmHeight)
+
+            return drawWaterMaskToBitmap(src, newWm, paddingLeft, paddingTop)
+        }
 
         fun drawTextLeftBottom(
             context: Context,
