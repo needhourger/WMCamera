@@ -189,6 +189,7 @@ class MainActivity : AppCompatActivity() {
                 val bitmap = ImageUtils.drawTextLeftBottom(this,
                     it,generateWaterMark(),30,5,R.color.watermark_white)
                 if (bitmap != null) {
+                    clearImageView()
                     mImageView.setImageBitmap(bitmap)
                     saveBitmap(bitmap, mCapturedImage!!.name)
                 }
@@ -197,6 +198,7 @@ class MainActivity : AppCompatActivity() {
             val result = CropImage.getActivityResult(data)
             if (resultCode == RESULT_OK) {
                 mCropedImage = result.uri
+                clearImageView()
                 mImageView.setImageURI(mCropedImage)
                 Toast.makeText(this,resources.getString(R.string.click_to_start_ocr),Toast.LENGTH_SHORT).show()
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
@@ -205,6 +207,11 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun clearImageView() {
+        mImageView.setImageBitmap(null)
+        mImageView.setImageURI(null)
     }
 
     private fun saveBitmap(bitmap:Bitmap,filename:String) {
