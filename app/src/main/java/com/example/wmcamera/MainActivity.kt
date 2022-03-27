@@ -1,5 +1,6 @@
 package com.example.wmcamera
 
+import android.app.ProgressDialog
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,9 +12,9 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mButtonWaterMark:Button
     private lateinit var mButtonOCR:Button
     private lateinit var mImageView:ImageView
+    private lateinit var mProgressBar:ProgressBar
 
     private var mPhotoSavePath:File? = null
     private var mCapturedImage:File? = null
@@ -62,30 +64,52 @@ class MainActivity : AppCompatActivity() {
             startCropImage()
         }
 
+        mProgressBar = findViewById(R.id.pbProgress)
+        mProgressBar.visibility = View.GONE
+
         mImageView = findViewById(R.id.imageView)
         mImageView.setOnClickListener {
             if (mCropedImage != null) {
                 if (!Tesseract.isInited) {
-                    Toast.makeText(this,"OCR引擎尚未加载完成",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this,"OCR引擎尚未加载完成,请稍候尝试",Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
-                } else {
-                    Toast.makeText(this,"点击图片进行OCR识别",Toast.LENGTH_SHORT).show()
                 }
                 val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(mCropedImage!!))
-                val result = Tesseract.doOCR(bitmap)
-                if (result != null) {
-                    showResultDialog(result)
-                } else {
-                    Toast.makeText(this,"OCR未识别到结果",Toast.LENGTH_SHORT).show()
-                }
+                mProgressBar.visibility = View.VISIBLE
+                updateButtonEnable(false)
+                Thread {
+                    val result = Tesseract.doOCR(bitmap)
+                    onOCRResult(result)
+                }.start()
+            }
+        }
+    }
+
+    private fun updateButtonEnable(enabled: Boolean) {
+        mButtonOCR.isEnabled = enabled
+        mButtonWaterMark.isEnabled = enabled
+    }
+
+    private fun onOCRResult(result: String?) {
+        runOnUiThread {
+            mProgressBar.visibility = View.GONE
+            updateButtonEnable(true)
+            if (result != null) {
+                showResultDialog(result)
+            } else {
+                Toast.makeText(this,"OCR未识别到结果",Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun showResultDialog(str:String) {
+        val view = LayoutInflater.from(this).inflate(R.layout.ocr_result,null)
+        val textview = view.findViewById<TextView>(R.id.tvResult)
+        textview.text = str
+
         val dialog = AlertDialog.Builder(this)
             .setTitle("OCR 文字识别结果")
-            .setMessage(str)
+            .setView(view)
             .setIcon(R.mipmap.ic_launcher_round)
             .setPositiveButton("确定") { p0, p1 -> }
             .setNeutralButton("复制"){ p0,p1->
@@ -160,6 +184,7 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == RESULT_OK) {
                 mCropedImage = result.uri
                 mImageView.setImageURI(mCropedImage)
+                Toast.makeText(this,"点击图片进行OCR识别",Toast.LENGTH_SHORT).show()
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 val e = result.error
                 Log.e(TAG, "onActivityResult: ",e )
