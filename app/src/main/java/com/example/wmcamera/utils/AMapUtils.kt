@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.amap.api.location.AMapLocation
@@ -24,29 +25,51 @@ class AMapUtils(private val context: Activity): AMapLocationListener {
         option.locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
         option.isOnceLocationLatest = true
         option.isNeedAddress = true
+        option.isSensorEnable = true
         option.httpTimeOut = 20000
 
         instance = AMapLocationClient(context)
         instance.setLocationListener(this)
         instance.setLocationOption(option)
         instance.stopLocation()
+        instance.startLocation()
     }
 
     fun getOnceLocationString():String {
         instance.startLocation()
-        if (currentPostion != null) {
-            return context.resources.getString(R.string.water_mark_title)+"\n"+
-                    "${currentPostion!!.address}\n" +
-                    "${currentPostion!!.longitude} - ${currentPostion!!.latitude}\n" +
-                    "${currentPostion!!.country}${currentPostion!!.provider}${currentPostion!!.city}${currentPostion!!.street}\n" +
-                    "${currentPostion!!.bearing}\n" +
-                    "${SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(Date())}"
+        if (currentPostion != null && currentPostion!!.errorCode==0) {
+            if (currentPostion!!.errorCode == 0) {
+                return context.resources.getString(R.string.water_mark_title)+
+                        "${currentPostion!!.address}\n" +
+                        generateCoordinates(currentPostion!!) +
+                        "${currentPostion!!.country}${currentPostion!!.province}${currentPostion!!.city}" +
+                        "${currentPostion!!.street}${currentPostion!!.streetNum}\n" +
+                        context.resources.getString(R.string.bearing)+" ${currentPostion!!.bearing}\n" +
+                        context.resources.getString(R.string.altitude)+" ${currentPostion!!.altitude}\n"+
+                        "${SimpleDateFormat(TIME_FORMAT, Locale.CHINA).format(Date())}"
+            } else {
+                Log.e(TAG,"location Error, ErrCode:"
+                        + currentPostion!!.errorCode + ", errInfo:"
+                        + currentPostion!!.errorInfo);
+            }
         }
         return context.resources.getString(R.string.no_position_result)
     }
 
     override fun onLocationChanged(position: AMapLocation?) {
+        Log.d(TAG, "onLocationChanged: $position")
         currentPostion =  position
+    }
+
+    private fun generateCoordinates(position: AMapLocation): String {
+        val longitude = position.longitude
+        val latitude = position.latitude
+        var ret = ""
+        ret += if (longitude<0) "$longitude W - "
+        else "$longitude E - "
+        ret += if (latitude<0) "$latitude S\n"
+        else "$latitude N\n"
+        return ret
     }
 
     fun destroy() {
