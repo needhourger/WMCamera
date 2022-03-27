@@ -1,12 +1,9 @@
 package com.example.wmcamera
 
-import android.app.ProgressDialog
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.net.Uri
-import android.os.AsyncTask.execute
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -17,7 +14,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
-import androidx.core.net.toUri
+import com.example.wmcamera.utils.AMapUtils
 import com.example.wmcamera.utils.ImageUtils
 import com.example.wmcamera.utils.Tesseract
 import com.theartofdev.edmodo.cropper.CropImage
@@ -28,7 +25,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.Executor
 
 private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
@@ -38,6 +34,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mImageView:ImageView
     private lateinit var mProgressBar:ProgressBar
 
+    private lateinit var mLocation:AMapUtils
+
     private var mPhotoSavePath:File? = null
     private var mCapturedImage:File? = null
     private var mCropedImage:Uri? = null
@@ -46,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        AMapUtils.requestPermission(this)
+        mLocation = AMapUtils(this)
         mPhotoSavePath = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         initTesseractModel()
         initViews()
@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         mImageView.setOnClickListener {
             if (mCropedImage != null) {
                 if (!Tesseract.isInited) {
-                    Toast.makeText(this,"OCR引擎尚未加载完成,请稍候尝试",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this,resources.getString(R.string.ocr_engine_loading),Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 val bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(mCropedImage!!))
@@ -108,11 +108,11 @@ class MainActivity : AppCompatActivity() {
         textview.text = str
 
         val dialog = AlertDialog.Builder(this)
-            .setTitle("OCR 文字识别结果")
+            .setTitle(resources.getString(R.string.ocr_result_title))
             .setView(view)
             .setIcon(R.mipmap.ic_launcher_round)
-            .setPositiveButton("确定") { p0, p1 -> }
-            .setNeutralButton("复制"){ p0,p1->
+            .setPositiveButton(resources.getString(R.string.confirm)) { p0, p1 -> }
+            .setNeutralButton(resources.getString(R.string.clip_to_clipboard)){ p0,p1->
                 val clipBoard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 val clipdata:ClipData = ClipData.newPlainText("ocr",str)
                 clipBoard.setPrimaryClip(clipdata)
@@ -167,6 +167,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == AMapUtils.PERMISSION_REQUEST_CODE && !AMapUtils.checkPermission(baseContext)) {
+            val alertDialog = AlertDialog.Builder(this)
+                .setTitle(resources.getString(R.string.tips))
+                .setMessage(resources.getString(R.string.permission_request_failed_message))
+                .setPositiveButton(resources.getString(R.string.confirm)){p0,p1->}
+                .setNegativeButton(resources.getString(R.string.request_permission)) { p0,p1->
+                    AMapUtils.requestPermission(this)
+                }.create()
+            alertDialog.show()
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -184,7 +198,7 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == RESULT_OK) {
                 mCropedImage = result.uri
                 mImageView.setImageURI(mCropedImage)
-                Toast.makeText(this,"点击图片进行OCR识别",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this,resources.getString(R.string.click_to_start_ocr),Toast.LENGTH_SHORT).show()
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 val e = result.error
                 Log.e(TAG, "onActivityResult: ",e )
@@ -226,6 +240,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun generateWaterMark():String {
-        return "场地土壤污染成因与治理技术专项"
+        return mLocation.getOnceLocationString()
     }
 }
